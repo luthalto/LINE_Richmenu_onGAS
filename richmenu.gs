@@ -1,25 +1,30 @@
-//以下の変数を前提としている
+//以下の定数を前提としている
 //同じスクリプトプロジェクト内に記述
 
-var url_richmenu = 'https://api.line.me/v2/bot/richmenu';
-var url_richmenu_data = 'https://api-data.line.me/v2/bot/richmenu/';
-var url_user = 'https://api.line.me/v2/bot/user';
+const url_richmenu = 'https://api.line.me/v2/bot/richmenu';
+const url_richmenu_data = 'https://api-data.line.me/v2/bot/richmenu/';
+const url_user = 'https://api.line.me/v2/bot/user';
 
 //以下にLINE MessagingAPIのアクセストークンを記述
-var access_token = { /*LINE Developers アクセストークン*/ };
+const access_token = { /*LINE Developers アクセストークン*/ };
+
 /**
  * リッチメニューを作成し、固有IDを返す
  * タップ領域は、全体2500*1686px、6分割での例
  * また、タップ領域のサイズ・アクション例を2つ載せている
  * 
- * @return {Object} json.richMenuId - LINEから返されたリッチメニュー固有のID
+ * @return {string} - LINEから返されたリッチメニュー固有のID
  */
 function makeRichmenu_largeSize() {
-  var url = url_richmenu;
+  const url = url_richmenu;
 
-  var areas = [];
+  const areas = [];
 
   //タップ領域の例　その1
+  let now = new Date();
+  const time = Utilities.formatDate(now, 'JST', "HH:mm");
+  const nextYear = now.setFullYear(now.getFullYear() + 1);
+  
   areas[0] = {
 
     //領域の大きさ
@@ -35,12 +40,8 @@ function makeRichmenu_largeSize() {
       'width': 833,
 
       //高さ843px
-      'height': 843,
+      'height': 843
     },
-
-    var now = new Date();
-    var time = Utilities.formatDate(now, 'JST', "HH:mm");
-    var nextYear = now.setFullYear(now.getFullYear() + 1);
 
     //ユーザがタップ時のアクション
     'action': {
@@ -100,7 +101,7 @@ function makeRichmenu_largeSize() {
     }
   };
 
-  var postData = {
+  const postData = {
 
     //タップ領域全体のサイズ
     'size': {
@@ -123,20 +124,20 @@ function makeRichmenu_largeSize() {
 
     //タップ領域群
     'areas': areas,
-  };
+  }
 
-  var headers = {
+  const headers = {
     'Content-Type': 'application/json; charset=UTF-8',
     'Authorization': 'Bearer ' + access_token,
-  };
+  }
 
-  var options = {
+  const options = {
     'method': 'post',
     'headers': headers,
     'payload': JSON.stringify(postData),
-  };
+  }
 
-  var json = UrlFetchApp.fetch(url, options);
+  let json = UrlFetchApp.fetch(url, options);
   json = JSON.parse(json);
   return json.richMenuId;
 }
@@ -144,23 +145,23 @@ function makeRichmenu_largeSize() {
 /**
  * MessagingAPIから作成したリッチメニューを取得
  * 
- * @return {Object} json - 取得したリッチメニュー一覧
+ * @return {Object[]} - 取得したリッチメニュー一覧
  */
 function getRichmenus() {
-  var url = url_richmenu + '/list';
+  const url = url_richmenu + '/list';
 
-  var headers = {
+  const headers = {
     'Authorization': 'Bearer ' + access_token,
   };
 
-  var options = {
+  const options = {
     'method': 'get',
     'headers': headers,
   };
 
-  var json = UrlFetchApp.fetch(url, options);
+  let json = UrlFetchApp.fetch(url, options);
   json = JSON.parse(json);
-  return json;
+  return json.richmenus;
 }
 
 /**
@@ -169,23 +170,23 @@ function getRichmenus() {
  * 
  * @param {string} richmenuId - リッチメニュー固有のID
  * @param {string} drive_fileId - GoogleDriveのファイルID
- * @return {Object} json - 結果
+ * @return {Object} - 結果
  */
 function setImage_Richmenu(richmenuId, drive_fileId) {
-  var url = url_richmenu_data + '/' + richmenuId + '/content';
+  const url = url_richmenu_data + '/' + richmenuId + '/content';
 
   //GoogleDriveからファイルIDで画像ファイルを開く
-  var image = DriveApp.getFileById(drive_fileId);
+  const image = DriveApp.getFileById(drive_fileId);
 
   //開いた画像ファイルをPNG形式・BLOBに変換
-  var blob = image.getAs(MimeType.PNG);
+  const blob = image.getAs(MimeType.PNG);
 
-  var headers = {
+  const headers = {
     'Content-Type': 'image/png',
     'Authorization': 'Bearer ' + access_token,
   };
 
-  var options = {
+  const options = {
     'method': 'post',
     'headers': headers,
 
@@ -193,7 +194,7 @@ function setImage_Richmenu(richmenuId, drive_fileId) {
     'payload': blob,
   };
 
-  var json = UrlFetchApp.fetch(url, options);
+  let json = UrlFetchApp.fetch(url, options);
   json = JSON.parse(json);
   return json;
 }
@@ -203,21 +204,21 @@ function setImage_Richmenu(richmenuId, drive_fileId) {
  * 
  * @param {string} uid - LINEユーザ固有のID
  * @param {string} richmenuId - リッチメニュー固有のID
- * @return {Object} json - 結果
+ * @return {Object} - 結果
  */
 function setRichmenu_toOneUser(uid, richmenuId) {
-  var url = url_user + '/' + uid + '/richmenu/' + richmenuId;
+  const url = url_user + '/' + uid + '/richmenu/' + richmenuId;
 
-  var headers = {
+  const headers = {
     'Authorization': 'Bearer ' + access_token,
   };
 
-  var options = {
+  const options = {
     'method': 'post',
     'headers': headers,
   };
 
-  var json = UrlFetchApp.fetch(url, options);
+  let json = UrlFetchApp.fetch(url, options);
   json = JSON.parse(json);
   return json;
 }
@@ -226,21 +227,21 @@ function setRichmenu_toOneUser(uid, richmenuId) {
  * 特定のユーザ1人にセットされているリッチメニューを取得
  * 
  * @param {string} uid - LINEユーザ固有のID
- * @return {Object} json.richMemuId - 紐付いているリッチメニューID
+ * @return {string} - 紐付いているリッチメニューID
  */
 function getRichmenu_ofOneUser(uid) {
-  var url = url_user + '/' + uid + '/richmenu/';
+  const url = url_user + '/' + uid + '/richmenu/';
 
-  var headers = {
+  const headers = {
     'Authorization': 'Bearer ' + access_token,
   };
 
-  var options = {
+  const options = {
     'method': 'get',
     'headers': headers,
   };
 
-  var json = UrlFetchApp.fetch(url, options);
+  let json = UrlFetchApp.fetch(url, options);
   json = JSON.parse(json);
   return json.richMemuId;
 }
@@ -252,18 +253,18 @@ function getRichmenu_ofOneUser(uid) {
  * @return {Object} json - 結果
  */
 function releaseRichmenu_fromUser(uid) {
-  var url = url_user + '/' + uid + '/richmenu';
+  const url = url_user + '/' + uid + '/richmenu';
 
-  var headers = {
+  const headers = {
     'Authorization': 'Bearer ' + access_token,
   };
 
-  var options = {
+  const options = {
     'method': 'delete',
     'headers': headers,
   };
 
-  var json = UrlFetchApp.fetch(url, options);
+  let json = UrlFetchApp.fetch(url, options);
   json = JSON.parse(json);
   return json;
 }
@@ -276,18 +277,18 @@ function releaseRichmenu_fromUser(uid) {
  * @return {Object} json - 結果
  */
 function deleteRichmenu(richmenuId) {
-  var url = url_richmenu + '/' + richmenuId;
+  const url = url_richmenu + '/' + richmenuId;
 
-  var headers = {
+  const headers = {
     'Authorization': 'Bearer ' + access_token,
   };
 
-  var options = {
+  const options = {
     'method': 'delete',
     'headers': headers,
   };
 
-  var json = UrlFetchApp.fetch(url, options);
+  let json = UrlFetchApp.fetch(url, options);
   json = JSON.parse(json);
   return json;
 }
